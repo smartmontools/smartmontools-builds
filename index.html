@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    
+    <!-- Meta refresh redirect (redirects after 3 seconds) -->
+    <meta http-equiv="refresh" content="1;url=https://github.com/smartmontools/smartmontools-builds/releases">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .countdown {
+            font-size: 1.2rem;
+            margin-top: 1rem;
+        }
+        
+        .manual-link {
+            margin-top: 1rem;
+            display: block;
+            color: #ffeb3b;
+            text-decoration: none;
+            border: 1px solid #ffeb3b;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .manual-link:hover {
+            background-color: #ffeb3b;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h1>Redirecting...</h1>
+        <p>You will be automatically redirected in <span id="countdown">1</span> seconds.</p>
+        <a href="https://github.com/smartmontools/smartmontools-builds/releases" class="manual-link">Click here if you are not redirected automatically</a>
+    </div>
+
+    <script>
+        // JavaScript countdown and redirect
+        let timeLeft = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const countdown = setInterval(() => {
+            timeLeft--;
+            countdownElement.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                // Redirect using JavaScript (alternative to meta refresh)
+                window.location.href = 'https://github.com/smartmontools/smartmontools-builds/releases';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
