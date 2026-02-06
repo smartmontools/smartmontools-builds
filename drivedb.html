@@ -434,6 +434,9 @@
                     <button class="btn-secondary" onclick="clearSearch()">
                         <span>✖</span> Clear
                     </button>
+                    <button class="btn-secondary" onclick="loadRemote()">
+                        <span>🌐</span> Load drivedb.h from Git
+                    </button>                    
                 </div>
             </div>
         </div>
@@ -475,6 +478,27 @@
             };
             reader.readAsText(file);
         });
+
+        function loadRemote() {
+            const url = 'https://raw.githubusercontent.com/smartmontools/smartmontools/refs/heads/main/lib/drivedb.h'
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Network response was not ok: ${response.statusText}`);
+                    }
+                    return response.text();
+                })
+                .then(text => parseDriverDB(text))
+                .catch(error => {
+                    document.getElementById('results').innerHTML = `
+                        <div class="status error">
+                            <span>❌</span>
+                            <div><strong>Failed to load file:</strong> ${escapeHtml(error.message)}</div>
+                        </div>
+                    `;
+                });
+        }
 
         function parseDriverDB(text) {
             const resultsDiv = document.getElementById('results');
