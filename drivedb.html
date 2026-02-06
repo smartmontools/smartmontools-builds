@@ -697,8 +697,8 @@
                 const entry = {
                     index: allEntries.length,
                     modelFamily: strings[0] || '',
-                    modelRegex: strings[1]  || '',
-                    firmwareRegex: strings[2]  || '',
+                    modelRegex: strings[1].replace(/\\\\/g,'\\')  || '',
+                    firmwareRegex: strings[2].replace(/\\\\/g,'\\') || '',
                     warning: strings[3].replace(/\\n/g," ") || '',
                     presets: ''
                 };
