@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartMonTools DriveDB Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            background: #f9fafb;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .search-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .stats-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 10px;
+            border: 2px solid #bfdbfe;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #4b5563;
+            font-weight: 600;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+
+        .results-container {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .status {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #93c5fd;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #6ee7b7;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+        }
+
+        .drive-entry {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            background: #f9fafb;
+            transition: all 0.2s;
+        }
+
+        .drive-entry:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #d1d5db;
+        }
+
+        .entry-title {
+            flex: 1;
+        }
+
+        .family-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .entry-badge {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+        }
+
+        .field-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .field-item {
+            background: white;
+            padding: 14px 18px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .field-label {
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 6px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .field-value {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+            font-size: 14px;
+            color: #1f2937;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .field-value.empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border: 2px solid #f59e0b;
+            padding: 14px 18px;
+            border-radius: 8px;
+            color: #92400e;
+            font-weight: 500;
+        }
+
+        .attributes-container {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .attributes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .attributes-header:hover {
+            color: #3b82f6;
+        }
+
+        .attributes-count {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .attributes-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .attribute-item {
+            background: #f9fafb;
+            padding: 10px 14px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e5e7eb;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .no-results-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .no-results h2 {
+            color: #4b5563;
+            margin-bottom: 10px;
+        }
+
+        .no-results p {
+            color: #6b7280;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ SmartMonTools DriveDB Explorer</h1>
+            <p class="subtitle">Browse and search the complete smartmontools drive database with detailed attribute definitions</p>
+            
+            <div class="controls">
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label>📁 Load drivedb.h file</label>
+                    <input type="file" id="fileInput" accept=".h" />
+                </div>
+
+                <div class="search-grid">
+                    <div class="input-group">
+                        <label>🔍 Drive Model Name</label>
+                        <input type="text" id="modelSearch" placeholder="e.g., Samsung SSD 850 EVO 250GB" />
+                        <small style="color: #6b7280; margin-top: 4px; font-size: 0.85em;">Enter your actual drive model</small>
+                    </div>
+                    <div class="input-group">
+                        <label>🔧 Firmware Version</label>
+                        <input type="text" id="firmwareSearch" placeholder="e.g., EXT0BB6Q" />
+                        <small style="color: #6b7280; margin-top: 4px; font-size: 0.85em;">Enter your actual firmware version</small>
+                    </div>
+                    <div class="input-group">
+                        <label>📝 Search Model Family (optional)</label>
+                        <input type="text" id="familySearch" placeholder="e.g., Samsung, WDC, Seagate" />
+                        <small style="color: #6b7280; margin-top: 4px; font-size: 0.85em;">Filter by family name (substring)</small>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="searchEntries()">
+                        <span>🔎</span> Search
+                    </button>
+                    <button class="btn-success" onclick="showAll()">
+                        <span>📋</span> Show All
+                    </button>
+                    <button class="btn-secondary" onclick="clearSearch()">
+                        <span>✖</span> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="statsBar" class="stats-bar hidden">
+            <div class="stat-item">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Entries</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="displayedCount">0</div>
+                <div class="stat-label">Displayed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="attributeCount">0</div>
+                <div class="stat-label">Avg Attributes</div>
+            </div>
+        </div>
+
+        <div class="results-container">
+            <div id="results">
+                <div class="status info">
+                    <span>ℹ️</span>
+                    <div>
+                        <strong>Welcome!</strong> Load your drivedb.h file to get started. The database typically contains 500+ drive definitions with detailed SMART attribute presets.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allEntries = [];
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                parseDriverDB(content);
+            };
+            reader.readAsText(file);
+        });
+
+        function parseDriverDB(text) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Parsing database...</p></div>';
+            
+            allEntries = [];
+            
+            // Remove block comments first
+            text = text.replace(/\/\*[\s\S]*?\*\//g, '');
+            
+            // State machine parser - handle inline comments during parsing
+            const lines = text.split('\n');
+            let currentEntry = '';
+            let braceCount = 0;
+            let inString = false;
+            let escaped = false;
+            let entriesFound = 0;
+            
+            for (let line of lines) {
+                // Remove inline C++ comments, but only outside of strings
+                let processedLine = '';
+                let lineInString = false;
+                let lineEscaped = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    if (lineEscaped) {
+                        processedLine += line[i];
+                        lineEscaped = false;
+                        continue;
+                    }
+                    
+                    if (line[i] === '\\' && lineInString) {
+                        processedLine += line[i];
+                        lineEscaped = true;
+                        continue;
+                    }
+                    
+                    if (line[i] === '"') {
+                        lineInString = !lineInString;
+                        processedLine += line[i];
+                        continue;
+                    }
+                    
+                    // Check for // comment start (only outside strings)
+                    if (!lineInString && i < line.length - 1 && line[i] === '/' && line[i + 1] === '/') {
+                        break; // Rest of line is a comment
+                    }
+                    
+                    processedLine += line[i];
+                }
+                
+                line = processedLine;
+                
+                // Now parse the cleaned line
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    
+                    if (escaped) {
+                        currentEntry += char;
+                        escaped = false;
+                        continue;
+                    }
+                    
+                    if (char === '\\') {
+                        escaped = true;
+                        currentEntry += char;
+                        continue;
+                    }
+                    
+                    if (char === '"') {
+                        inString = !inString;
+                        currentEntry += char;
+                        continue;
+                    }
+                    
+                    if (!inString) {
+                        if (char === '{') {
+                            braceCount++;
+                            if (braceCount === 1) {
+                                currentEntry = '{';
+                                continue;
+                            }
+                        } else if (char === '}') {
+                            braceCount--;
+                            currentEntry += char;
+                            if (braceCount === 0) {
+                                parseEntry(currentEntry);
+                                entriesFound++;
+                                currentEntry = '';
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    if (braceCount > 0) {
+                        currentEntry += char;
+                    }
+                }
+                if (braceCount > 0) {
+                    currentEntry += '\n';
+                }
+            }
+            
+            console.log(`Parsed ${entriesFound} entries, ${allEntries.length} valid entries added`);
+            
+            if (allEntries.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        <span>⚠️</span>
+                        <div><strong>Error:</strong> No entries found in the file. Please ensure you've uploaded a valid drivedb.h file.</div>
+                    </div>
+                `;
+            } else {
+                displayEntries(allEntries, `Successfully loaded ${allEntries.length} drive entries`);
+            }
+        }
+
+        function joinNonCommaLines(input) {
+            // First, clean up comments
+            const lines = input.split('\n').map(l => {
+                l = l.trim();
+                // Skip comment-only lines
+                if (l.startsWith('//')) return '';
+                // Remove inline comments
+                const commentIndex = l.indexOf('//');
+                if (commentIndex !== -1) {
+                    l = l.substring(0, commentIndex).trim();
+                }
+                return l;
+            }).filter(Boolean);
+
+            // Join all lines into one string
+            const joined = lines.join(' ');
+            
+            console.log('Joined string:', joined.substring(0, 200));
+
+            // Now extract quoted strings and track commas between them
+            const result = [];
+            let i = 0;
+            let currentField = ''; // Accumulates multiple strings if no comma between them
+            let inString = false;
+            let escaped = false;
+            let currentString = '';
+            let lastWasComma = false;
+
+            while (i < joined.length) {
+                const char = joined[i];
+
+                if (escaped) {
+                    currentString += char;
+                    escaped = false;
+                    i++;
+                    continue;
+                }
+
+                if (char === '\\') {
+                    escaped = true;
+                    currentString += char;
+                    i++;
+                    continue;
+                }
+
+                if (char === '"') {
+                    if (!inString) {
+                        // Start of string
+                        inString = true;
+                        currentString = '';
+                    } else {
+                        // End of string - add to current field
+                        currentField += currentString;
+                        currentString = '';
+                        inString = false;
+                        lastWasComma = false;
+                    }
+                    i++;
+                    continue;
+                }
+
+                if (inString) {
+                    currentString += char;
+                    i++;
+                    continue;
+                }
+
+                // Outside of string - check for comma
+                if (char === ',') {
+                    // Comma separates fields - save current field and start new one
+                    result.push(currentField);
+                    currentField = '';
+                    lastWasComma = true;
+                    i++;
+                    continue;
+                }
+
+                i++;
+            }
+
+            // Don't forget the last field
+            if (currentField || lastWasComma) {
+                result.push(currentField);
+            }
+            
+            console.log('Parsed fields:', result.length, result);
+
+            return result;
+        }
+
+        
+        function parseEntry(entryStr) {
+            
+            // Extract strings manually character by character
+            let i = 0;
+
+            // remove {}
+            entryStr = entryStr.replace(/{((.|\n)+)}/gm, "$1");
+            // remove empty lines
+            entryStr = entryStr.replace(/^\s*$/gm, '');
+            
+            const strings = joinNonCommaLines(entryStr);
+            console.log('Processing entry:', strings);
+            // console.log('Extracted strings:', strings);
+            // Structure: modelfamily, modelregexp, firmwareregexp, warningmsg, presets...
+            // Presets can be multiple consecutive strings that need to be concatenated
+            if (strings.length >= 4) {
+                // First 4 fields are single strings
+                const entry = {
+                    index: allEntries.length,
+                    modelFamily: strings[0] || '',
+                    modelRegex: strings[1]  || '',
+                    firmwareRegex: strings[2]  || '',
+                    warning: strings[3] || '',
+                    presets: ''
+                };
+                
+                // Concatenate all remaining strings (index 4 onwards) as presets
+                for (let j = 4; j < strings.length; j++) {
+                    entry.presets += strings[j];
+                }
+                
+                // Parse attributes from presets
+                entry.attributes = parseAttributes(entry.presets);
+                
+                // Filter out USB entries, DEFAULT, and VERSION entries
+                if (entry.modelRegex && entry.modelRegex !== '-' && !entry.modelFamily.startsWith('USB:')) {
+                    allEntries.push(entry);
+                }
+            }
+        }
+
+        function parseAttributes(presets) {
+            if (!presets) return [];
+            
+            const attributes = [];
+            // Match patterns like: -v 194,tempminmax,Temperature_Celsius
+            const attrRegex = /-v\s+(\d+),([^,\s]+),([^\s]+)/g;
+            let match;
+            
+            while ((match = attrRegex.exec(presets)) !== null) {
+                attributes.push({
+                    id: match[1],
+                    format: match[2],
+                    name: match[3].replace(/_/g, ' ')
+                });
+            }
+            
+            return attributes;
+        }
+
+        function searchEntries() {
+            const modelName = document.getElementById('modelSearch').value.trim();
+            const firmwareVersion = document.getElementById('firmwareSearch').value.trim();
+            const familyFilter = document.getElementById('familySearch').value.trim();
+
+            if (!modelName && !firmwareVersion && !familyFilter) {
+                document.getElementById('results').innerHTML = `
+                    <div class="status error">
+                        <span>⚠️</span>
+                        <div><strong>Notice:</strong> Please enter at least a model name, firmware version, or family filter to search.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (allEntries.length === 0) {
+                document.getElementById('results').innerHTML = `
+                    <div class="status error">
+                        <span>⚠️</span>
+                        <div><strong>Notice:</strong> Please load the drivedb.h file first.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let filtered = allEntries;
+
+            try {
+                // Filter by family first (if provided)
+                if (familyFilter) {
+                    filtered = filtered.filter(entry => 
+                        entry.modelFamily.toLowerCase().includes(familyFilter.toLowerCase())
+                    );
+                }
+
+                // Filter by model name
+                if (modelName) {
+                    filtered = filtered.filter(entry => {;
+                        try {
+                            const regexModel = new RegExp(entry.modelRegex,"g");
+                            const model_match = regexModel.test(modelName);
+                            fw_match = true;
+
+                            if(model_match && entry.firmwareRegex.length && firmwareVersion){
+                                console.log('Model matches, checking firmware regex:', entry.firmwareRegex, 'against', firmwareVersion);
+                                const regexFirmware = new RegExp(entry.firmwareRegex,"g");
+                                fw_match = regexFirmware.test(firmwareVersion);
+                            }
+                            return model_match && fw_match;
+                        } catch (e) {
+                            console.log('Invalid regex for entry:', entry.modelRegex, e);
+                            return false;
+                        }
+                    });
+                }
+
+                const searchDesc = [];
+                if (modelName) searchDesc.push(`model="${modelName}"`);
+                if (firmwareVersion) searchDesc.push(`firmware="${firmwareVersion}"`);
+                if (familyFilter) searchDesc.push(`family="${familyFilter}"`);
+                
+                displayEntries(filtered, `Found ${filtered.length} matching ${filtered.length === 1 ? 'entry' : 'entries'} for ${searchDesc.join(', ')}`);
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <div class="status error">
+                        <span>❌</span>
+                        <div><strong>Search error:</strong> ${escapeHtml(error.message)}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function showAll() {
+            if (allEntries.length === 0) {
+                document.getElementById('results').innerHTML = `
+                    <div class="status error">
+                        <span>⚠️</span>
+                        <div><strong>Notice:</strong> Please load the drivedb.h file first.</div>
+                    </div>
+                `;
+                return;
+            }
+            displayEntries(allEntries, `Showing all ${allEntries.length} entries`);
+        }
+
+        function displayEntries(entries, message) {
+            const resultsDiv = document.getElementById('results');
+            const statsBar = document.getElementById('statsBar');
+            
+            if (entries.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="status info">
+                        <span>ℹ️</span>
+                        <div><strong>${message}</strong></div>
+                    </div>
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <h2>No matching entries found</h2>
+                        <p>Try adjusting your search criteria or using different regex patterns.</p>
+                    </div>
+                `;
+                statsBar.classList.add('hidden');
+                return;
+            }
+
+            // Update stats
+            const totalAttrs = entries.reduce((sum, e) => sum + e.attributes.length, 0);
+            const avgAttrs = entries.length > 0 ? Math.round(totalAttrs / entries.length) : 0;
+            
+            document.getElementById('totalCount').textContent = allEntries.length;
+            document.getElementById('displayedCount').textContent = entries.length;
+            document.getElementById('attributeCount').textContent = avgAttrs;
+            statsBar.classList.remove('hidden');
+
+            // Render entries
+            let html = `
+                <div class="status success">
+                    <span>✅</span>
+                    <div><strong>${message}</strong></div>
+                </div>
+            `;
+
+            entries.forEach(entry => {
+                html += `
+                    <div class="drive-entry">
+                        <div class="entry-header">
+                            <div class="entry-title">
+                                <div class="family-name">${escapeHtml(entry.modelFamily)}</div>
+                            </div>
+                            <div class="entry-badge">#${entry.index}</div>
+                        </div>
+                        
+                        <div class="field-grid">
+                            <div class="field-item">
+                                <div class="field-label">📝 Model Pattern</div>
+                                <div class="field-value">${escapeHtml(entry.modelRegex)}</div>
+                            </div>
+                            
+                            ${entry.firmwareRegex ? `
+                            <div class="field-item">
+                                <div class="field-label">🔧 Firmware Pattern</div>
+                                <div class="field-value">${escapeHtml(entry.firmwareRegex)}</div>
+                            </div>
+                            ` : ''}
+                            
+                            ${entry.warning ? `
+                            <div class="field-item">
+                                <div class="warning-box">
+                                    <strong>⚠️ Warning:</strong> ${escapeHtml(entry.warning)}
+                                </div>
+                            </div>
+                            ` : ''}
+                            
+                            ${entry.attributes.length > 0 ? `
+                            <div class="field-item">
+                                <div class="attributes-container">
+                                    <div class="attributes-header" onclick="toggleAttributes(${entry.index})">
+                                        <div class="field-label">⚙️ Modified SMART Attributes</div>
+                                        <div class="attributes-count">${entry.attributes.length}</div>
+                                    </div>
+                                    <div id="attrs-${entry.index}" class="attributes-list">
+                                        ${entry.attributes.map(attr => `
+                                            <div class="attribute-item">
+                                                <strong>ID ${attr.id}</strong>: ${escapeHtml(attr.name)} <span style="color: #6b7280;">(${attr.format})</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            ` : `
+                            <div class="field-item">
+                                <div class="field-label">⚙️ Modified SMART Attributes</div>
+                                <div class="field-value empty">No modified attributes (uses defaults)</div>
+                            </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function toggleAttributes(index) {
+            const attrsDiv = document.getElementById(`attrs-${index}`);
+            if (attrsDiv) {
+                attrsDiv.classList.toggle('hidden');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('modelSearch').value = '';
+            document.getElementById('firmwareSearch').value = '';
+            document.getElementById('familySearch').value = '';
+            
+            if (allEntries.length > 0) {
+                showAll();
+            } else {
+                document.getElementById('results').innerHTML = `
+                    <div class="status info">
+                        <span>ℹ️</span>
+                        <div><strong>Search cleared!</strong> Load drivedb.h to begin browsing.</div>
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key to search
+        document.addEventListener('DOMContentLoaded', function() {
+            ['modelSearch', 'firmwareSearch', 'familySearch'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') searchEntries();
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
