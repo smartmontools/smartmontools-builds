@@ -447,10 +447,6 @@
                 <div class="stat-value" id="displayedCount">0</div>
                 <div class="stat-label">Displayed</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-value" id="attributeCount">0</div>
-                <div class="stat-label">Avg Attributes</div>
-            </div>
         </div>
 
         <div class="results-container">
@@ -581,7 +577,6 @@
                     currentEntry += '\n';
                 }
             }
-            
             console.log(`Parsed ${entriesFound} entries, ${allEntries.length} valid entries added`);
             
             if (allEntries.length === 0) {
@@ -602,19 +597,12 @@
                 l = l.trim();
                 // Skip comment-only lines
                 if (l.startsWith('//')) return '';
-                // Remove inline comments
-                const commentIndex = l.indexOf('//');
-                if (commentIndex !== -1) {
-                    l = l.substring(0, commentIndex).trim();
-                }
                 return l;
             }).filter(Boolean);
 
             // Join all lines into one string
             const joined = lines.join(' ');
             
-            console.log('Joined string:', joined.substring(0, 200));
-
             // Now extract quoted strings and track commas between them
             const result = [];
             let i = 0;
@@ -681,14 +669,16 @@
                 result.push(currentField);
             }
             
-            console.log('Parsed fields:', result.length, result);
-
             return result;
         }
 
         
         function parseEntry(entryStr) {
+
             
+            
+
+            // console.log('Parsing entry:', entryStr); // Log the raw entry string (truncated)
             // Extract strings manually character by character
             let i = 0;
 
@@ -696,10 +686,10 @@
             entryStr = entryStr.replace(/{((.|\n)+)}/gm, "$1");
             // remove empty lines
             entryStr = entryStr.replace(/^\s*$/gm, '');
+
             
             const strings = joinNonCommaLines(entryStr);
-            console.log('Processing entry:', strings);
-            // console.log('Extracted strings:', strings);
+
             // Structure: modelfamily, modelregexp, firmwareregexp, warningmsg, presets...
             // Presets can be multiple consecutive strings that need to be concatenated
             if (strings.length >= 4) {
@@ -709,7 +699,7 @@
                     modelFamily: strings[0] || '',
                     modelRegex: strings[1]  || '',
                     firmwareRegex: strings[2]  || '',
-                    warning: strings[3] || '',
+                    warning: strings[3].replace(/\\n/g," ") || '',
                     presets: ''
                 };
                 
@@ -854,11 +844,9 @@
 
             // Update stats
             const totalAttrs = entries.reduce((sum, e) => sum + e.attributes.length, 0);
-            const avgAttrs = entries.length > 0 ? Math.round(totalAttrs / entries.length) : 0;
             
             document.getElementById('totalCount').textContent = allEntries.length;
             document.getElementById('displayedCount').textContent = entries.length;
-            document.getElementById('attributeCount').textContent = avgAttrs;
             statsBar.classList.remove('hidden');
 
             // Render entries
