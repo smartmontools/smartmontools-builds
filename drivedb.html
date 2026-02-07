@@ -308,6 +308,11 @@
             font-weight: 500;
         }
 
+        .warning-box A{
+            color: #92400e;
+            text-decoration: underline;
+        }
+
         .attributes-container {
             background: white;
             padding: 16px;
@@ -696,9 +701,6 @@
         
         function parseEntry(entryStr) {
 
-            
-            
-
             // console.log('Parsing entry:', entryStr); // Log the raw entry string (truncated)
             // Extract strings manually character by character
             let i = 0;
@@ -843,6 +845,14 @@
             displayEntries(allEntries, `Showing all ${allEntries.length} entries`);
         }
 
+        function linkify(text) {
+            const urlRegex = /(\bhttps?:\/\/[^\s]+|\bwww\.[^\s]+)/gi;
+            return text.replace(urlRegex, function (url) {
+                const href = url.startsWith('http') ? url : `https://${url}`;
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+            });
+        }
+
         function displayEntries(entries, message) {
             const resultsDiv = document.getElementById('results');
             const statsBar = document.getElementById('statsBar');
@@ -904,7 +914,7 @@
                             ${entry.warning ? `
                             <div class="field-item">
                                 <div class="warning-box">
-                                    <strong>⚠️ Warning:</strong> ${escapeHtml(entry.warning)}
+                                    <strong>⚠️ Warning:</strong> ${linkify(escapeHtml(entry.warning))}
                                 </div>
                             </div>
                             ` : ''}
